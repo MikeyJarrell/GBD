@@ -33,8 +33,8 @@ data <- data %>%
   left_join(country_incomes, by=c("iso3"="code")) 
 
 setDT(data)
-data[, old := fifelse(age_start >= 65, 1, fifelse(age_end < 65, 0, NA_real_))]
-rough_approach = data[!is.na(old), sum(sample_size, na.rm = TRUE), .(income_group, old)]
+data[, rough_old := fifelse(age_start >= 65, 1, fifelse(age_end < 65, 0, NA_real_))]
+rough_approach = data[!is.na(rough_old), sum(sample_size, na.rm = TRUE), .(income_group, rough_old)]
 
 # data = data[iso3 %in% c("COL", "CHE") & sample_size > 0]
 # data_col_che = copy(data)
@@ -114,10 +114,28 @@ results <- data %>%
   group_by(old, income_group) %>% 
   summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
   
+results_depression_only <- data %>% 
+  filter(cause == "Major depressive disorder") %>% 
+  group_by(old, income_group) %>% 
+  summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
+  
+ss_by_country = data.table(data)[, .(total_ss = sum(sample_size, na.rm = TRUE)), .(iso3, income_group)]
+ss_by_country_old = data.table(data)[, .(total_ss = sum(sample_size, na.rm = TRUE)), .(iso3, income_group, old)]
+UN_members = fread("UNMemberStateCodes.csv")
+total_countries_in_group = country_incomes[code %in% UN_members$code, .(total_countries = .N), income_group]
+
+n_countries_with_data = ss_by_country[total_ss > 0, .(countries_with_data = .N), income_group][total_countries_in_group, on = "income_group", total_countries := i.total_countries]
+n_countries_with_data_by_age = ss_by_country_old[total_ss > 0, .(countries_with_data_for_age_group = .N), .(income_group, old)][total_countries_in_group, on = "income_group", total_countries := i.total_countries]
+
 results_simple <- data %>% 
   group_by(old, income_group_simple) %>% 
   summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
+
+results_simple_no_age <- data %>% 
+  group_by(income_group_simple) %>% 
+  summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
   
+
 # Scale sample sizes down by percent of country population that is that age
 # data <- data %>% 
 #   left_join(population, by=c("iso3","age")) %>% 
