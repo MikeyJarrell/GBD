@@ -12,6 +12,8 @@ country_incomes = data.table(read_excel("Country Incomes.xlsx")) %>%
 data <- data %>% 
   janitor::clean_names()
 
+data[, sample_size_id := .I]
+
 # Change a stupid variable name
 setnames(country_incomes, "economy", "country")
 country_incomes[code == "VEN", income_group := "Lower middle income"]
@@ -30,6 +32,12 @@ data <- data %>%
 data <- data %>% 
   left_join(country_incomes, by=c("iso3"="code")) 
 
+setDT(data)
+data[, old := fifelse(age_start >= 65, 1, fifelse(age_end < 65, 0, NA_real_))]
+rough_approach = data[!is.na(old), sum(sample_size, na.rm = TRUE), .(income_group, old)]
+
+# data = data[iso3 %in% c("COL", "CHE") & sample_size > 0]
+# data_col_che = copy(data)
 
 # data = merge(
 #   data, 
@@ -90,14 +98,14 @@ data <- data %>%
   mutate(year_mid = round((year_end + year_start)/2))
 
 setDT(population)
-population[, age:= as.numeric(age)]
+population[, age := as.numeric(age)]
 population[, age_copy := age]
 setkey(population, iso3, year, age, age_copy)
 setkey(data, iso3, year_mid, age_start, age_end)
 data = foverlaps(data[!is.na(age_start), ], population)
 
 data <- data %>%
-  group_by(citation) %>%
+  group_by(sample_size_id) %>%
   mutate(age_pop_share = pop / sum(pop)) %>%
   mutate(old = age > age_old) %>%
   ungroup()
