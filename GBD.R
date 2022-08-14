@@ -15,10 +15,12 @@ data <- data %>%
 # Change a stupid variable name
 setnames(country_incomes, "economy", "country")
 country_incomes[code == "VEN", income_group := "Lower middle income"]
+country_incomes[, income_group_simple := fifelse(income_group == "High income", "HIC", "LMIC")]
 
 # Assign countries to locations
 location_countries <- read_csv("location_country_matches.csv") %>% 
-  janitor::clean_names()
+  janitor::clean_names() %>% 
+  unique()
 
 data <- data %>% 
   left_join(location_countries, by=c("citation", "location")) %>% 
@@ -102,9 +104,11 @@ data <- data %>%
 
 results <- data %>% 
   group_by(old, income_group) %>% 
-  summarise(total_sample = sum(age_pop_share * sample_size))
+  summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
   
-  
+results_simple <- data %>% 
+  group_by(old, income_group_simple) %>% 
+  summarise(total_sample = sum(age_pop_share * sample_size, na.rm = TRUE))
   
 # Scale sample sizes down by percent of country population that is that age
 # data <- data %>% 
@@ -121,12 +125,19 @@ population %>%
   mutate(old = age > age_old) %>%
   filter(year == 2021) %>%
   group_by(income_group, old) %>% 
-  summarise(pop = sum(pop))
+  summarise(pop = sum(pop)) %>% 
+  left_join(results, by = c("income_group", "old")) %>% 
+  mutate(proportion = 100 * total_sample / pop) %>% 
+  mutate(inverse_proportion = 1/proportion)
 
-# Sum up sample size by same buckets
-data %>% 
-  group_by(income_group, old) %>% 
-  summarise(pop = sum(pop))
-
-# Divide
+# Sum up population by buckets (income group X age range)
+population %>% 
+  inner_join(country_incomes, by=c("iso3"="code")) %>% 
+  mutate(old = age > age_old) %>%
+  filter(year == 2021) %>%
+  group_by(income_group_simple, old) %>% 
+  summarise(pop = sum(pop)) %>% 
+  left_join(results_simple, by = c("income_group_simple", "old")) %>% 
+  mutate(proportion = 100 * total_sample / pop) %>% 
+  mutate(inverse_proportion = 1/proportion)
 
