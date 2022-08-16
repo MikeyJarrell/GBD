@@ -39,20 +39,35 @@ setnames(country_incomes, "economy", "country")
 country_incomes[code == "VEN", income_group := "Lower middle income"]
 country_incomes[, income_group_simple := fifelse(income_group == "High income", "HIC", "LMIC")]
 
-country_incomes[code == "BIH", country := "Bosnia Herzegovina"]
-country_incomes[code == "COG", country := "Congo Brazzaville"]
-country_incomes[code == "EGY", country := "Egypt"]
-country_incomes[code == "HKG", country := "Hong Kong"]
-country_incomes[code == "IRN", country := "Iran"]
-country_incomes[code == "CIV", country := "Ivory Coast"]
-country_incomes[code == "KGZ", country := "Kyrgyzstan"]
-country_incomes[code == "LAO", country := "Laos"]
-country_incomes[code == "RUS", country := "Russia"]
-country_incomes[code == "SVK", country := "Slovakia"]
-country_incomes[code == "KOR", country := "South Korea"]
-country_incomes[code == "TWN", country := "Taiwan"]
-country_incomes[code == "TUR", country := "Turkey"]
-country_incomes[code == "VEN", country := "Venezuela"]
+country_incomes[
+  code == "BIH", country := "Bosnia Herzegovina"
+  ][
+  code == "COG", country := "Congo Brazzaville"
+  ][
+  code == "EGY", country := "Egypt"
+  ][
+  code == "HKG", country := "Hong Kong"
+  ][
+  code == "IRN", country := "Iran"
+  ][
+  code == "CIV", country := "Ivory Coast"
+  ][
+  code == "KGZ", country := "Kyrgyzstan"
+  ][
+  code == "LAO", country := "Laos"
+  ][
+  code == "RUS", country := "Russia"
+  ][
+  code == "SVK", country := "Slovakia"
+  ][
+  code == "KOR", country := "South Korea"
+  ][
+  code == "TWN", country := "Taiwan"
+  ][
+  code == "TUR", country := "Turkey"
+  ][
+  code == "VEN", country := "Venezuela"
+  ]
 
 # Assign low-, middle-, high-income country to each row
 data <- data %>%
