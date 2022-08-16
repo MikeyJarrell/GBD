@@ -1,5 +1,5 @@
 setwd("/Users/mikey/Downloads/")
-pacman::p_load(dplyr, naniar, ggplot2, viridis, cowplot)
+pacman::p_load(data.table, dplyr, naniar, ggplot2, viridis, cowplot)
 data = data.table(read.csv("Gallup.csv"))
 
 data$depressed = (1-(data$MH7A-1)) # data[, depressed := fifelse(MH7A == 1, 0, fifelse(MH7A == 2, 1, NA))]
