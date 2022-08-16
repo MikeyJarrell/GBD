@@ -80,7 +80,7 @@ to_plot = data[Age < 99 & depressed != -97, .(depressed = weighted.mean(depresse
 to_plot[, age_bin_factor := factor(age_bin_name, ordered = TRUE)]
 
 ggplot(to_plot) + 
-  geom_line(aes(x = age_bin_factor, y = depressed, color = income_group_simple, group = income_group_simple)) +
+  geom_line(aes(x = age_bin_factor, y = depressed, color = income_group_simple, group = income_group_simple), size = 1) +
   scale_colour_viridis(discrete = TRUE, direction = -1, end = 0.7, option = "inferno") +
   theme_cowplot() +
   xlab("Age") +
@@ -90,7 +90,9 @@ ggplot(to_plot) +
     legend.title = element_blank(),
     axis.text.x = element_text(angle = 45, hjust = 1)
   ) +
-  ggtitle("% Depressed")
+  expand_limits(y = 0) +
+  scale_y_continuous(expand = expansion(mult = c(0, .1)), breaks = seq(0, 0.25, 0.05)) +
+  ggtitle("Share Depressed")
 
 
 ggsave("DepressionByIncome.pdf")
